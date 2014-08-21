@@ -146,6 +146,7 @@ ReviewChecklistManager.create([
   "Changeset checked out and tried",
   "Commit message test plan is sufficient for manual sanity checking",
   "Automated tests cover all necessary cases",
-  "User-facing strings/dates/times/numbers are internationalized"
+  "User-facing strings/dates/times/numbers are internationalized",
+  "UI interactions are accessible to screen reader, keyboard only, and visually impaired users"
 ]);
 

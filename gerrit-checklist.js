@@ -14,11 +14,11 @@ function ReviewChecklistManager(optsList) {
 
 ReviewChecklistManager.create = function(optsList) {
   if (ReviewChecklistManager.instanceCreated) {
-      console.log('Only a single Gerrit checklist is allowed.');
-      return;
+    console.log('Only a single Gerrit checklist is allowed.');
+    return;
   }
   ReviewChecklistManager.instanceCreated = true;
-    
+
   new ReviewChecklistManager(optsList).activate();
 };
 
@@ -69,6 +69,12 @@ ReviewChecklistManager.prototype.createStandinTextArea = function() {
       mgr.gerTextArea.trigger(evt);
     }
   });
+
+  // grr... don't let '?' trigger the help dialog :/
+  if (evt.which == 191 && evt.shiftKey) { // '?' character
+    evt.preventDefault();
+    mgr.textArea.val('' + mgr.textArea.val() + '?');
+  }
 };
 
 ReviewChecklistManager.prototype.updateManagedTextArea = function() {

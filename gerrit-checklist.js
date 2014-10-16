@@ -30,6 +30,7 @@ ReviewChecklistManager.prototype.activate = function() {
 };
 
 ReviewChecklistManager.prototype.domChangeListener = function() {
+  if (this.isSelfAuthored()) return;  // Don't show checkboxes when replying to our own review
   var gerTextArea = $('.popupContent .gwt-TextArea');
   if (gerTextArea.length == 0) return;  // review popover is not open
 
@@ -80,6 +81,10 @@ ReviewChecklistManager.prototype.createStandinTextArea = function() {
 ReviewChecklistManager.prototype.updateManagedTextArea = function() {
   if (!this.gerTextArea) return;
   this.gerTextArea.val('' + this.textArea.val() + this.checklistText);
+};
+
+ReviewChecklistManager.prototype.isSelfAuthored = function() {
+  return $("div:contains('Change '):contains(' by '):not(:has(div)) span[title]").first().text() == $('span.menuBarUserName').text();
 };
 
 ReviewChecklistManager.prototype.insertOptions = function() {

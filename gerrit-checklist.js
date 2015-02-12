@@ -24,13 +24,12 @@ ReviewChecklistManager.create = function(optsList) {
 
 ReviewChecklistManager.prototype.activate = function() {
   this.boundDomChangeListener = this.domChangeListener.bind(this);
-//  $('body').bind("DOMSubtreeModified", this.boundDomChangeListener);
+  //  $('body').bind("DOMSubtreeModified", this.boundDomChangeListener);
   // I guess Tampermonkey or Gerrit or someone doesn't gimme jQuery at this point.
   document.getElementsByTagName('body')[0].addEventListener ('DOMSubtreeModified', this.boundDomChangeListener, false);
 };
 
 ReviewChecklistManager.prototype.domChangeListener = function() {
-  if (this.isSelfAuthored()) return;  // Don't show checkboxes when replying to our own review
   var gerTextArea = $('.popupContent .gwt-TextArea');
   if (gerTextArea.length == 0) return;  // review popover is not open
 
@@ -65,7 +64,7 @@ ReviewChecklistManager.prototype.createStandinTextArea = function() {
   var mgr = this;
   this.textArea.bind('keydown', function(evt) {
     if ((evt.which == 13 && evt.ctrlKey) || // ctrl-Enter
-         evt.which == 27) { // esc
+    evt.which == 27) { // esc
       mgr.gerTextArea.focus();
       mgr.gerTextArea.trigger(evt);
     }
@@ -83,10 +82,6 @@ ReviewChecklistManager.prototype.updateManagedTextArea = function() {
   this.gerTextArea.val('' + this.textArea.val() + this.checklistText);
 };
 
-ReviewChecklistManager.prototype.isSelfAuthored = function() {
-  return $("div:contains('Change '):contains(' by '):not(:has(div)) span[title]").first().text() == $('span.menuBarUserName').text();
-};
-
 ReviewChecklistManager.prototype.insertOptions = function() {
   this.textArea.after(this.optionsTable());
 };
@@ -100,8 +95,8 @@ ReviewChecklistManager.prototype.optionsTable = function() {
 ReviewChecklistManager.prototype.updateChecklistText = function() {
   var positive = [], negative = [];
   this.optsList.forEach(function(option, index) {
-    if (this.checkboxes[index].is(':checked')) positive.push(option)
-    else negative.push(option)
+    if (this.yesCheckboxes[index].is(':checked')) positive.push(option);
+    if (this.noCheckboxes[index].is(':checked')) negative.push(option);
   }, this);
 
   var message = '';
@@ -120,32 +115,43 @@ ReviewChecklistManager.prototype.updateChecklistText = function() {
 };
 
 ReviewChecklistManager.prototype.buildOptionsTable = function() {
-  this.checkboxes = [];
+  this.yesCheckboxes = [];
+  this.noCheckboxes = [];
+
   var rows = this.optsList.map(function(option, index) {
     var id = '"checkbox_' + index + '"';
-    var box = $('<input type="checkbox" id=' + id + ' tabindex="0">');
-    box.bind('change', this.updateChecklistText.bind(this));
-    this.checkboxes.push(box);
 
-    return  $('<tr>').append(
-              $('<td align="left" style="vertical-align: top;">').append(
-                box
-              ).append(
-                $('<label for=' + id + ' style="font-size: smaller; padding-left: 5px;">').append(
-                  option
-                )
-              )
-            );
+    tr = $('<tr>');
+
+    [this.noCheckboxes, [], this.yesCheckboxes].forEach(function(array, index) {
+      var box = $('<input type="radio" name=' + id + '>');
+      if (index == 1)
+      box.attr('checked', 'checked');
+      box.bind('change', this.updateChecklistText.bind(this));
+      array.push(box);
+      tr.append(
+        $('<td>').append(box)
+      );
+    }.bind(this));
+
+    return  tr.append(
+      $('<td align="left" style="vertical-align: middle; padding-left: 5px; font-size: 0.9em">').append(option)
+    );
   }, this);
 
-  var tbody = $('<tbody id="review-checklist">');
+  var header = $('<tr>');
+  ['-1', '0', '+1'].forEach(function(text) {
+    header.append($('<td align="center">').append(text));
+  });
+
+  var tbody = $('<tbody id="review-checklist">').append(header);
   rows.forEach(function(row) {
     tbody.append(row);
   });
 
   this.updateChecklistText();
 
-  return $('<table cellspacing="0" cellpadding="0">').append(tbody);
+  return $('<table cellspacing="2" cellpadding="0">').append(tbody);
 };
 
 ReviewChecklistManager.prototype.optionsPresent = function() {

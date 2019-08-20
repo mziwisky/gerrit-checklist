@@ -57,13 +57,13 @@ ReviewChecklistManager.create = function(defaultOptsList) {
 
   const repoName = document.location.toString().match(/\/c\/(.*)\/\+/)[1];
   fetch(
-    `https://gerrit.instructure.com/plugins/gitiles/${repoName}/+show/master/.review-checklist.json?format=text`,
+    `/plugins/gitiles/${repoName}/+show/master/.review-checklist.json?format=text`,
   )
     .then(function(res) {
       return res.text().then(function(base64) {
         if (base64 && base64 !== '') {
           const customSettings = JSON.parse(atob(base64));
-          const { checklist, defaultStatus } = customSettings;
+          const {checklist, defaultStatus} = customSettings;
           new ReviewChecklistManager(checklist, defaultStatus).activate();
         } else {
           new ReviewChecklistManager(defaultOptsList, null).activate();
@@ -152,9 +152,8 @@ ReviewChecklistManager.prototype.createStandinTextArea = function() {
   this.textArea.addEventListener('keydown', function(evt) {
     if (
       (evt.which == 13 && evt.ctrlKey) || // ctrl-Enter
-      evt.which == 27
+      evt.which == 27 // esc
     ) {
-      // esc
       mgr.gerTextArea.focus();
       mgr.gerTextArea.trigger(evt);
     }
